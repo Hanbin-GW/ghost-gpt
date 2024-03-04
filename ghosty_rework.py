@@ -52,8 +52,10 @@ class MyNewHelp(commands.MinimalHelpCommand):
         cog = self.context.bot.get_cog(cog_name)
         if cog is None:
             return discord.Embed(title="Error", description="No such cog.", color=discord.Color.red())
-
-        return discord.Embed(title=f"{cog_name} Commands", description="\n".join([f"`{command.name} : {command.description}`" for command in cog.get_commands()]))
+        embed = discord.Embed(title=f"{cog_name} Commands", description="\n".join([f"`{command.name} : {command.description}`" for command in cog.get_commands()]))
+        
+        return embed
+        #return discord.Embed(title=f"{cog_name} Commands", description="\n".join([f"`{command.name} : {command.description}`" for command in cog.get_commands()]))
 
 bot.help_command = MyNewHelp()
 

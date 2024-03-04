@@ -1,12 +1,32 @@
-import base64
-import io
+import matplotlib.pyplot as plt
+import numpy as np
 
-def encode_image_to_base64(image_path):
-    with open(image_path, 'rb') as image_file:
-        encoded_string = base64.b64encode(image_file.read())
-        return encoded_string
+# Define the cotangent function
+def cot(x):
+    return 1/np.tan(x)
 
-# 사용 예시
-image_path = 'generated_image.png'  # 이 부분에 이미지 파일 경로를 넣으세요
-encoded_image = encode_image_to_base64(image_path)
-print(encoded_image)
+# Generate x values
+x = np.linspace(-2*np.pi, 2*np.pi, 1000)
+x = x[np.logical_not(np.isclose(x % np.pi, 0))]  # Remove points where tan(x) is undefined
+
+# Generate y values for cotangent
+y = cot(x)
+
+# Plotting
+plt.figure(figsize=(10, 6))
+plt.plot(x, y, label='cot(x)')
+
+# Asymptotes and Pi multiples for reference
+for i in range(-2, 3):
+    plt.axvline(i*np.pi, color='gray', linestyle='--', linewidth=0.5)
+    plt.text(i*np.pi, 0, f'{i}π', horizontalalignment='center', verticalalignment='bottom')
+
+plt.ylim(-10, 10)
+plt.title('Cotangent Function')
+plt.xlabel('x')
+plt.ylabel('cot(x)')
+plt.legend()
+plt.grid(True, which='both', linestyle='--', linewidth=0.5)
+plt.axhline(0, color='black',linewidth=0.5)
+plt.axvline(0, color='black',linewidth=0.5)
+plt.show()

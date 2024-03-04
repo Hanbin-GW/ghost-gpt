@@ -8,32 +8,22 @@ import asyncio
 from openai import OpenAI
 load_dotenv()
 from config.config import *
-client = OpenAI(api_key="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")
+client = OpenAI(api_key=str(key))
 
+modlist = [759072684461391893, 1048458483311317053]
+
+def ListCheck():
+    async def IsInList(ctx):
+        member=ctx.message.author.id
+        if member is modlist:
+            return True
+        else:
+            return False
+    return commands.check(IsInList)
 
 class dall_E(commands.Cog):
     def __init__(self,bot):
         self.bot = bot
-
-    @commands.command(name="draw")
-    async def generate(self, ctx:commands.context, *, prompt):
-        headers = {
-            "Authorization": f"Bearer {key}",
-            "Content-Type": "application/json"
-            }
-        data = {
-            "prompt": prompt,
-            }
-        response = requests.post('DALL·E_ENDPOINT_HERE', headers=headers, json=data)
-        if response.status_code == 200:
-            image_url = response.json()['image_url']
-            await ctx.send(image_url)
-        else:
-            await ctx.send("Failed to generate image. Please try again.")
-
-    @generate.error
-    async def error(self,ctx,error):
-        await ctx.reply(error)
     '''
     @app_commands.command(name="DallE_generate")
     @app_commands.choices(size = [
@@ -59,6 +49,7 @@ class dall_E(commands.Cog):
     '''
 
     @commands.command(name="generate_image",description="Model : Dall-E-3")
+    #@ListCheck()
     @commands.cooldown(1, 10800, commands.BucketType.user)
     async def generate_image(self, ctx : commands.context, *, prompt:str):
         response = client.images.generate(
@@ -68,10 +59,6 @@ class dall_E(commands.Cog):
             size="1024x1024"
         )
         image_url = response.data[0].url
-        #image_url = response.GetImageUrl()
-        #image_url = response['data'][0]['url']
-        #await ctx.reply(image_url)
-        #await ctx.send("주위! 본 사진은 몇시간뒤 삭제됩니다!")
         print(f"{Color.BLUE}{image_url}{Color.RESET}")
         image_response = requests.get(image_url)
         filename = "generated_image.png"
@@ -88,7 +75,27 @@ class dall_E(commands.Cog):
         if isinstance(error, commands.CommandOnCooldown):
             await ctx.send(f'Command is on cooldown, try again in {error.retry_after:.2f} seconds.')
         else:
-            raise error
+            await ctx.send(error)
+
+    @commands.command(name='gi',description="Dall-E-3 limited Acess")
+    async def genetate(self, ctx : commands.Context, * ,prompt:str):
+        response = client.images.generate(
+            model="dall-e-3",
+            prompt=prompt,
+            n = 1,
+            size="512x512"
+        )
+        image_url = response.data[0].url
+        print(f"{Color.BLUE}{image_url}{Color.RESET}")
+        image_response = requests.get(image_url)
+        filename = "generated_image.png"
+
+        with open(filename, "wb") as file:
+            file.write(image_response.content)
+
+        # 다운로드한 이미지를 Discord에 업로드합니다.
+        with open(filename, "rb") as file:
+            await ctx.reply(file=discord.File(file, filename))
 
 async def setup(bot): # this is called by Pycord to setup the cog
     await bot.add_cog(dall_E(bot))
