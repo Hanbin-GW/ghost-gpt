@@ -154,6 +154,7 @@ config/
 backup/
 src/config/
 .png
-/s
+s/
 .mp3
 w.py
+saved_images/

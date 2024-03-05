@@ -2,17 +2,17 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 from color_ansi import Color
-import traceback
-import openai
-import aiohttp
 from config.config import *
 import asyncio
 from datetime import datetime
 from dotenv import load_dotenv
 from openai import OpenAI
 import base64
+import requests
 load_dotenv()
 import os
+
+
 client = OpenAI(api_key=str(key))
 #openai.base_url = "https://api.openai.com/v1/chat/completions"
 #openai.default_headers = {"x-foo": "true"}
@@ -23,8 +23,14 @@ now.strftime("%Y-%m-%d %H:%M:%S")
 current_path = os.getcwd()
 
 def encode_image(image_path):
-  with open(image_path, "rb") as image_file:
-    return base64.b64encode(image_file.read()).decode('utf-8')
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode('utf-8')
+
+image_path = "path_to_your_image.jpg"
+
+# Getting the base64 string
+
+
 
 def code_respose(prompt):
     completion = client.completions.create(
@@ -42,15 +48,6 @@ def gpt_3_response(prompt):
         model="gpt-3.5-turbo-1106",
         messages=[
             {"role":"user","content":prompt}
-        ]
-    )
-    return completion.choices[0].message.content
-
-def gpt32k_response(prompt):
-    completion = client.chat.completions.create(
-        model="gpt-4-32k",
-        messages=[
-            {"role" : "user", "comtent" : prompt}
         ]
     )
     return completion.choices[0].message.content
@@ -74,12 +71,12 @@ def gpt_4_t_response(prompt):
         messages=[
             {"role":"user","content":prompt}
         ],
-        max_tokens=12800,
+        max_tokens=4096,
         
     )
     return completion.choices[0].message.content
 
-def gpt_4t_image(prompt , link:str):
+def gpt_4t_image(prompt, base64_image):
     response = client.chat.completions.create(
         model="gpt-4-vision-preview",
         messages = [
@@ -89,7 +86,9 @@ def gpt_4t_image(prompt , link:str):
                     {"type":"text","text":prompt},
                     {
                         "type":"image_url",
-                        "image_url" : {"url": link}
+                        "image_url": {
+                            "url": f"data:image/jpeg;base64,{base64_image}"
+                        }
                     },
                 ]
             }
@@ -176,6 +175,28 @@ class Chat_gpt(commands.Cog):
                 respond = gpt_4_t_response(prompt)
                 await message.channel.send(respond)
 
+        if message.channel.name == "gpt-4-vision":
+            if message.attachments:
+                for attachment in message.attachments:
+                # 이미지 파일인 경우에만 처리
+                    if any(attachment.filename.lower().endswith(image_ext) for image_ext in ['jpg', 'jpeg', 'png', 'gif']):
+                        response = requests.get(attachment.url)
+
+                    # 요청이 성공적이면 파일 저장
+                        if response.status_code == 200:
+                            #file_path = f"./saved_images/{attachment.filename}"
+                            file_path = f"./saved_images/image.png"
+                            #base64_image = encode_image({attachment.filename})
+                            with open(file_path, 'wb') as f:
+                                f.write(response.content)
+                            print(f"Image saved: {file_path}")
+                            #print(base64_image)
+                            base64_image = encode_image(image_path=file_path)
+                            respond = gpt_4t_image(prompt=prompt, base64_image=base64_image)
+                            await message.channel.send(respond)
+                            print(f"{Color.BLUE}Vision     {respond}{Color.RESET}")
+                        else:
+                            print("Failed to download the image.")
     
     @gpt.error
     async def error_gpt(self, ctx,error):
