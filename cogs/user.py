@@ -11,13 +11,6 @@ with open('blacklist.txt', 'r') as file:
     raw_blacklist = [line.strip().split(",") for line in file if "," in line]
     blacklist = {(int(server_id), int(user_id)) for server_id, user_id in raw_blacklist}
 
-class Questionnaire(discord.ui.Modal, title='Questionnaire Response'):
-    name = discord.ui.TextInput(label='Name')
-    answer = discord.ui.TextInput(label='Answer', style=discord.TextStyle.paragraph)
-
-    async def on_submit(self, interaction: discord.Interaction):
-        await interaction.response.send_message(f'Thanks for your response, {self.name}!', ephemeral=True)
-
 class user(commands.Cog):
     rules_message_id = 1084676435786084422
 
@@ -49,10 +42,6 @@ class user(commands.Cog):
         embed.set_footer(icon_url = f"{member.avatar.url}", text = f"Requested by {member}")
         embed.timestamp = datetime.datetime.utcnow()
         await interaction.response.send_message(embed=embed)
-
-    @app_commands.command(name="test_modal")
-    async def test_modal(self, interaction: discord.Interaction):
-        await interaction.response.send_modal(modal=Questionnaire())
     
     @commands.command(name="the time has been come")
     async def ghost(self,ctx):

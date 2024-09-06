@@ -1,6 +1,7 @@
 import asyncio
 from typing import Optional
 import discord
+import aiohttp
 from color_ansi import Color
 from discord.ext import commands
 from config.config import *
@@ -15,6 +16,24 @@ intents = discord.Intents.all()
 intents.guilds = True
 intents.message_content = True
 bot = commands.Bot(command_prefix='$', intents=intents, owner_ids=[759072684461391893])  # 봇의 접두사 설정
+block_users = [917030705870028901, 1042790192307781642]
+
+async def global_check(ctx):
+    # 차단된 유저 리스트에 있는지 확인
+    return ctx.author.id not in block_users
+
+bot.add_check(global_check) 
+
+
+# 명령어 실행 실패(특히 CheckFailure)에 대한 에러 핸들링
+@bot.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.CheckFailure):
+        await ctx.send(f'죄송하지만, {ctx.author.mention}, 당신은 이 명령어를 사용할 수 없습니다.\n사유 :  후원자 전용 명령어 또는 시스탬 오류')
+        print(Color.RED + f"the blacklist user {ctx.author} failed to use a commands" + Color.RESET)
+    else:
+        print(f'Unhandled error: {error}')
+
 # 로깅 초기화
 #logging.basicConfig(level=logging.INFO, format='%(asctime)s:%(levelname)s:%(name)s: %(message)s')
 class HelpView(discord.ui.View):
@@ -82,6 +101,29 @@ async def stats(ctx):
     bedem.add_field(name = 'Memory Usage', value = f'{psutil.virtual_memory().percent}%', inline = False)
     bedem.add_field(name = 'Available Memory', value = f'{psutil.virtual_memory().available * 100 / psutil.virtual_memory().total}%', inline = False)
     await ctx.send(embed = bedem)
+
+@bot.command()
+@commands.has_permissions(manage_messages=True)
+async def clear(ctx : commands.context, amount: int):
+    await ctx.channel.purge(limit=amount + 1)
+    await ctx.send(f'{amount}개의 메시지를 삭제했습니다.', delete_after=5)
+
+@bot.command(name="새벽맨션")
+async def mention_late(ctx : commands.context):
+    user = ctx.author
+    role_name = "새벽맨션"
+    role = discord.utils.get(ctx.guild.roles, name=role_name)
+    if role:
+        # 사용자가 이미 해당 역할을 가지고 있는지 확인합니다.
+        if role in user.roles:
+            await ctx.send(f'이미 규칙을 갖고 있습니다.. {role_name}')
+        else:
+            # 역할을 부여합니다.
+            await user.add_roles(role)
+            await ctx.send(f'{role_name} 이 지급되었습니다..!')
+    else:
+        await ctx.send(f'{role_name} 이 이미 존제하지 않습니다.')
+
 
 '''
 @bot.event

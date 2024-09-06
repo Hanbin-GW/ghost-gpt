@@ -12,14 +12,9 @@ import requests
 load_dotenv()
 import os
 
-
-client = OpenAI(api_key=str(key))
-#openai.base_url = "https://api.openai.com/v1/chat/completions"
-#openai.default_headers = {"x-foo": "true"}
-premium_access = []
+client = OpenAI(api_key=str(new_key))
 now = datetime.now()
 now.strftime("%Y-%m-%d %H:%M:%S")
-
 current_path = os.getcwd()
 
 def encode_image(image_path):
@@ -30,16 +25,12 @@ image_path = "path_to_your_image.jpg"
 
 # Getting the base64 string
 
-
-
-def code_respose(prompt):
-    completion = client.completions.create(
-        model="code-davinci-003",
-        #prompt=prompt,
-        messages =[
-            {"role":"user","content":prompt}
-        ],
-        temperature=0.7
+def gpto_response(prompt):
+    completion = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role":"user", "content":prompt},
+        ]
     )
     return completion.choices[0].message.content
 
@@ -54,7 +45,7 @@ def gpt_3_response(prompt):
 
 def gpt_response(prompt):
     completion = client.chat.completions.create(
-        model="gpt-4-0613",
+        model="gpt-4o",
         #model="gpt-4-turbo-preview"
         #response_format={ "type": "json_object" },
         messages=[
@@ -67,7 +58,7 @@ def gpt_response(prompt):
 def gpt_4_t_response(prompt):
     completion = client.chat.completions.create(
         #model="gpt-4-0125-preview",
-        model="gpt-4-turbo-preview", 
+        model="gpt-4-turbo", 
         messages=[
             {"role":"user","content":prompt}
         ],
@@ -98,7 +89,7 @@ def gpt_4t_image(prompt, base64_image):
     #print(response.choices[0].message.content)
     return response.choices[0].message.content
 
-modlist = [759072684461391893, 1048458483311317053]
+modlist = [759072684461391893, 1048458483311317053, 1048458483311317053]
 
 def ListCheck():
     async def IsInList(ctx):
@@ -165,17 +156,13 @@ class Chat_gpt(commands.Cog):
                 respond = await gpt_3_response(prompt)
                 await message.channel.send(respond)
 
-        if message.channel.name == "code-davinci-003":
-            async with message.channel.typing():
-                respond_c = await code_respose(prompt)
-                await message.channel.send(respond_c)
-        
-        if message.channel.name == "gpt-4-turbo":
-            async with message.channel.typing():
-                respond = gpt_4_t_response(prompt)
-                await message.channel.send(respond)
+
 
         if message.channel.name == "gpt-4-vision":
+            if not message.attachments:
+                async with message.channel.typing():
+                    respond = gpt_4_t_response(prompt)
+                    await message.channel.send(respond)
             if message.attachments:
                 for attachment in message.attachments:
                 # 이미지 파일인 경우에만 처리
@@ -197,6 +184,8 @@ class Chat_gpt(commands.Cog):
                             print(f"{Color.BLUE}Vision     {respond}{Color.RESET}")
                         else:
                             print("Failed to download the image.")
+            
+
     
     @gpt.error
     async def error_gpt(self, ctx,error):
@@ -210,12 +199,5 @@ class Chat_gpt(commands.Cog):
     async def on_error(self, error, ctx:commands.context):
         await ctx.reply(error)
 
-    '''
-    @commands.Cog.listener("on_error")
-    async def on_error(self,event, *args, **kwargs):
-        exc_info = traceback.format_exc()
-        print(Color.RED+ Color.BOLD+f"[ERROR] {event} - {args} - {kwargs}"+ Color.RESET +Color.RESET)
-        print(Color.RED+f"{exc_info}"+Color.RESET)
-    '''
 async def setup(bot): 
     await bot.add_cog(Chat_gpt(bot))
