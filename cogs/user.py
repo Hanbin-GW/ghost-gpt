@@ -7,9 +7,9 @@ import logging
 #logging.basicConfig(level=logging.INFO, format='%(asctime)s:%(levelname)s:%(name)s: %(message)s')
 #logger = logging.getLogger(__name__)
 
-with open('blacklist.txt', 'r') as file:
-    raw_blacklist = [line.strip().split(",") for line in file if "," in line]
-    blacklist = {(int(server_id), int(user_id)) for server_id, user_id in raw_blacklist}
+#with open('blacklist.txt', 'r') as file:
+    #raw_blacklist = [line.strip().split(",") for line in file if "," in line]
+    #blacklist = {(int(server_id), int(user_id)) for server_id, user_id in raw_blacklist}
 
 class user(commands.Cog):
     rules_message_id = 1084676435786084422
@@ -17,11 +17,11 @@ class user(commands.Cog):
     def __init__(self,bot):
         self.bot = bot
 
-    @commands.Cog.listener()
+    '''@commands.Cog.listener()
     async def on_message(self,message):
         if (message.guild.id, message.author.id) in blacklist:
             await message.delete()
-            return
+            return'''
     @app_commands.command()
     async def send_message(self, interaction:discord.Interaction, member: discord.User, *, message: str):
         await member.send(message)

@@ -25,6 +25,10 @@ image_path = "path_to_your_image.jpg"
 
 # Getting the base64 string
 
+async def send_long_message(channel, message):
+    for i in range(0, len(message), 2000):
+        await channel.send(message[i:i+2000])
+
 def gpto_response(prompt):
     completion = client.chat.completions.create(
         model="gpt-4o",
@@ -145,11 +149,14 @@ class Chat_gpt(commands.Cog):
         
         #print(username + " said " + user_message.lower() + " in " + channel)
 
-        if message.channel.name == 'chat-gpt':
+        if message.channel.name == '🤖ㅣchat-gpt':
             async with message.channel.typing():
-                respond = gpt_response(prompt)
-                print(f"{Color.MAGENTA}{respond}{Color.RESET}")
-                await message.channel.send(respond)
+                response = gpt_response(prompt)
+                print(f"{Color.MAGENTA}{response}{Color.RESET}")
+                if(len(response) >= 2000):
+                    await send_long_message(message.channel, response)
+                else:
+                    await message.channel.send(response)
 
         if message.channel.name == "gpt-3":
             async with message.channel.typing():

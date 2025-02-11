@@ -83,7 +83,6 @@ class dall_E(commands.Cog):
             prompt=prompt,
             n=1,
             size="1024x1024",
-            n=1,
             quality="hd",
             style="vivid"
         )
